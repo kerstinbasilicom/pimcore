@@ -56,6 +56,7 @@
     "doctrine/cache": "~1.6.2",
     "doctrine/collections": "~1.4.0",
     "doctrine/common": "~2.7.3",
+    "elements/common-bundles": "^2.1",
     "doctrine/dbal": "~2.5.13",
     "doctrine/doctrine-bundle": "~1.6.8",
     "doctrine/doctrine-migrations-bundle": "~1.2.1",
@@ -99,7 +100,7 @@
     "twig/extensions": "^1.5",
     "twig/twig": "^2.0",
     "vrana/adminer": "~4.6",
-    "vrana/jush": "~2.0.2",
+    "vrana/jush": "dev-master",
     "wa72/htmlpagedom": "^1.3",
     "wikimedia/composer-merge-plugin": "^1.4",
     "zendframework/zend-code": "~3.1.0",
@@ -174,5 +175,32 @@
       "merge-extra-deep": false,
       "merge-scripts": false
     }
+  },
+  "repositories": {
+    "vrana-jush": {
+      "type": "package",
+      "url": "https://composer-packages.elements.at/",
+      "info1": "External dependency of vrana/adminer which isn't included or referenced by adminer, see also https://sourceforge.net/p/adminer/bugs-and-features/468/ ",
+      "info2": "The package on GitHub isn't compatible with Adminer, it doesn't contain the /modules/ folder.",
+      "package": {
+        "name": "vrana/jush",
+        "version": "1.0.0",
+        "source": {
+          "url": "https://git.code.sf.net/p/jush/git",
+          "type": "git",
+          "reference": "master"
+        }
+      }
+    },
+    "elements": {
+      "type": "composer",
+      "url": "https://composer-packages.elements.at/"
+    },
+    "dam":  {
+      "type": "vcs",
+      "url": "git@github.com:pimcore-partner/DAM.git",
+      "no-api": true
+    }
   }
+
 }

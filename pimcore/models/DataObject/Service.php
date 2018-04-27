@@ -324,7 +324,16 @@ class Service extends Model\Element\Service
                     // brick
                     $brickType = $keyParts[0];
                     $brickKey = $keyParts[1];
+
+                    if (strpos($brickType, "?") !== false) {
+                        $brickDescriptor = substr($brickType, 1);
+                        $brickDescriptor = json_decode($brickDescriptor, true);
+                        $brickType = $brickDescriptor["containerKey"];
+                    }
+
                     $key = self::getFieldForBrickType($object->getclass(), $brickType);
+
+
 
                     $brickClass = Objectbrick\Definition::getByKey($brickType);
                     $context['outerFieldname'] = $key;
@@ -356,7 +365,7 @@ class Service extends Model\Element\Service
                         if (in_array($key, Concrete::$systemColumnNames)) {
                             $data[$dataKey] = $object->$getter();
                         } else {
-                            $valueObject = self::getValueForObject($object, $key, $brickType, $brickKey, $def, $context);
+                            $valueObject = self::getValueForObject($object, $key, $brickType, $brickKey, $def, $context, $brickDescriptor);
                             $data['inheritedFields'][$dataKey] = ['inherited' => $valueObject->objectid != $object->getId(), 'objectid' => $valueObject->objectid];
 
                             if (method_exists($def, 'getDataForGrid')) {
@@ -607,7 +616,7 @@ class Service extends Model\Element\Service
      *
      * @return \stdclass, value and objectid where the value comes from
      */
-    private static function getValueForObject($object, $key, $brickType = null, $brickKey = null, $fieldDefinition = null, $context = [])
+    private static function getValueForObject($object, $key, $brickType = null, $brickKey = null, $fieldDefinition = null, $context = [], $brickDescriptor = null)
     {
         $getter = 'get'.ucfirst($key);
         $value = $object->$getter();
@@ -616,7 +625,13 @@ class Service extends Model\Element\Service
             $value = $value->$getBrickType();
             if (!empty($value) && !empty($brickKey)) {
                 $brickGetter = 'get'.ucfirst($brickKey);
-                $value = $value->$brickGetter();
+                if ($brickDescriptor) {
+                    //TODO
+                    $value = $value->getLocalizedfields()->{'get' . ucfirst($brickDescriptor["brickfield"])};
+
+                } else {
+                    $value = $value->$brickGetter();
+                }
             }
         }
 
@@ -633,7 +648,7 @@ class Service extends Model\Element\Service
         if ($fieldDefinition->isEmpty($value)) {
             $parent = self::hasInheritableParentObject($object);
             if (!empty($parent)) {
-                return self::getValueForObject($parent, $key, $brickType, $brickKey, $fieldDefinition, $context);
+                return self::getValueForObject($parent, $key, $brickType, $brickKey, $fieldDefinition, $context, $brickDescriptor);
             }
         }
 
@@ -1506,6 +1521,8 @@ class Service extends Model\Element\Service
 
         if ($layout instanceof  Model\DataObject\ClassDefinition\Data\Localizedfields) {
             if ($context['containerType'] == 'fieldcollection') {
+                $context['subContainerType'] = 'localizedfield';
+            } else if ($context['containerType'] == 'objectbrick') {
                 $context['subContainerType'] = 'localizedfield';
             } else {
                 $context['ownerType'] = 'localizedfield';

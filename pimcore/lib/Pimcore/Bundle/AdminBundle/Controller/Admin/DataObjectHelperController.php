@@ -686,15 +686,8 @@ class DataObjectHelperController extends AdminController
                             foreach ($allowedTypes as $t) {
                                 $brickClass = DataObject\Objectbrick\Definition::getByKey($t);
                                 $brickFields = $brickClass->getFieldDefinitions($context);
-                                if (!empty($brickFields)) {
-                                    foreach ($brickFields as $bf) {
-                                        $fieldConfig = $this->getFieldGridConfig($bf, $gridType, $count, false, $t . '~', $class, $objectId);
-                                        if (!empty($fieldConfig)) {
-                                            $availableFields[] = $fieldConfig;
-                                            $count++;
-                                        }
-                                    }
-                                }
+
+                                $this->appendBrickFields($field, $brickFields, $availableFields, $gridType, $count, $t, $class, $objectId);
                             }
                         }
                     }
@@ -711,6 +704,47 @@ class DataObjectHelperController extends AdminController
         }
 
         return $availableFields;
+    }
+
+    /**
+     * @param $field DataObject\ClassDefinition\Data
+     * @param $brickFields
+     * @param $availableFields
+     * @param $gridType
+     * @param $count
+     * @param $brickType
+     * @param $class
+     * @param $objectId
+     * @param null $context
+     */
+    protected function appendBrickFields($field, $brickFields, &$availableFields, $gridType, &$count, $brickType, $class, $objectId, $context = null)
+    {
+        if (!empty($brickFields)) {
+            foreach ($brickFields as $bf) {
+                if ($bf instanceof DataObject\ClassDefinition\Data\Localizedfields) {
+                    $localizedFieldDefinitions = $bf->getFieldDefinitions();
+
+                    $context = [
+                        "containerKey" => $brickType,
+                        "fieldname" => $field->getName()
+                    ];
+
+                    $this->appendBrickFields($bf, $localizedFieldDefinitions, $availableFields, $gridType, $count, $brickType, $class, $objectId, $context);
+                } else {
+                    if ($context) {
+                        $context["brickfield"] = $bf->getName();
+                        $keyPrefix = "?" . json_encode($context) . "~";
+                    } else {
+                        $keyPrefix = $brickType . '~';
+                    }
+                    $fieldConfig = $this->getFieldGridConfig($bf, $gridType, $count, false, $keyPrefix, $class, $objectId);
+                    if (!empty($fieldConfig)) {
+                        $availableFields[] = $fieldConfig;
+                        $count++;
+                    }
+                }
+            }
+        }
     }
 
     protected function getCalculatedColumnConfig($config)

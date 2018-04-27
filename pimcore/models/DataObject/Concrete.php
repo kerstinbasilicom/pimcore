@@ -153,6 +153,8 @@ class Concrete extends AbstractObject
         foreach ($fieldDefintions as $fd) {
             $getter = 'get'.ucfirst($fd->getName());
             $setter = 'set'.ucfirst($fd->getName());
+//here
+
 
             if (method_exists($this, $getter)) {
 
